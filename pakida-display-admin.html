@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>pakida · display admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --charcoal: #141814;
+  --charcoal-2: #1b1f17;
+  --charcoal-3: #22281f;
+  --sage: #7a9e7e;
+  --sage-dim: #4a6a4e;
+  --gold: #d4a853;
+  --cream: #f0e8d4;
+  --danger: #e57373;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  background: var(--charcoal);
+  color: var(--cream);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+
+.pin-screen {
+  position: fixed; inset: 0;
+  background: var(--charcoal);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 100;
+  padding: 32px;
+}
+
+.pin-screen.hidden { display: none; }
+
+.pin-brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 72px;
+  color: var(--sage);
+  margin-bottom: 8px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.pin-label {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+.pin-sub {
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 40px;
+}
+
+.pin-input {
+  background: var(--charcoal-2);
+  border: 1px solid var(--sage-dim);
+  border-radius: 12px;
+  padding: 20px 24px;
+  font-size: 32px;
+  font-family: 'Playfair Display', serif;
+  color: var(--gold);
+  width: 220px;
+  text-align: center;
+  letter-spacing: 12px;
+  outline: none;
+}
+
+.pin-input:focus { border-color: var(--gold); }
+
+.pin-error { color: var(--danger); font-size: 13px; margin-top: 14px; min-height: 18px; }
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(122, 158, 126, 0.18);
+}
+
+.app-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.app-subtitle { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--sage); margin-top: 6px; }
+
+.view-display {
+  background: transparent;
+  color: var(--sage);
+  border: 1px solid var(--sage-dim);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: inherit;
+}
+
+.view-display:active { background: var(--charcoal-2); }
+
+.sync-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 22px;
+}
+
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); }
+.sync-dot.off { background: var(--danger); }
+.sync-dot.saving { background: var(--gold); animation: blink 0.6s ease infinite; }
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.card {
+  background: var(--charcoal-2);
+  border: 1px solid rgba(122, 158, 126, 0.15);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: var(--cream);
+  line-height: 1;
+}
+
+.card-meta {
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-top: 6px;
+}
+
+.toggle {
+  position: relative;
+  width: 50px;
+  height: 28px;
+  background: var(--charcoal-3);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.toggle.on { background: var(--sage); }
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 22px; height: 22px;
+  background: var(--cream);
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle.on::after { transform: translateX(22px); }
+
+.field { margin-bottom: 14px; }
+
+.field-label {
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 6px;
+}
+
+.field input, .field textarea, .field select {
+  width: 100%;
+  background: var(--charcoal);
+  border: 1px solid rgba(122, 158, 126, 0.2);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: var(--cream);
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+}
+
+.field input:focus, .field textarea:focus { border-color: var(--gold); }
+
+.field textarea { resize: vertical; min-height: 60px; font-family: inherit; }
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.save-btn {
+  width: 100%;
+  background: var(--gold);
+  color: var(--charcoal);
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.save-btn:active { background: #c19847; }
+.save-btn:disabled { opacity: 0.5; }
+.save-btn.saved { background: var(--sage); color: var(--cream); }
+
+.info {
+  background: rgba(122, 158, 126, 0.08);
+  border: 1px solid rgba(122, 158, 126, 0.2);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--sage);
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+
+.info strong { color: var(--gold); font-weight: 600; }
+
+</style>
+</head>
+<body>
+
+<div class="pin-screen" id="pinScreen">
+  <div class="pin-brand">P</div>
+  <div class="pin-label">pakida</div>
+  <div class="pin-sub">Display Admin</div>
+  <input type="password" inputmode="numeric" pattern="[0-9]*" class="pin-input" id="pinInput" maxlength="4" autocomplete="off">
+  <div class="pin-error" id="pinError"></div>
+</div>
+
+<div class="app" id="app" style="display:none;">
+
+<div class="app-header">
+  <div>
+    <div class="app-title">Display Admin</div>
+    <div class="app-subtitle">Downstairs TV · Live</div>
+  </div>
+  <a class="view-display" href="pakida-display.html" target="_blank">View ↗</a>
+</div>
+
+<div class="sync-bar">
+  <div class="sync-dot" id="syncDot"></div>
+  <span id="syncText">Connected · changes go live in ~3 seconds</span>
+</div>
+
+<div class="info">
+  Toggle screens on or off. Edit fields and hit <strong>Save</strong>. The downstairs TV updates within 3 seconds.
+</div>
+
+<!-- STATUS -->
+<div class="card" data-key="status">
+  <div class="card-head">
+    <div>
+      <div class="card-title">Live Status</div>
+      <div class="card-meta">Members + Tables Occupied</div>
+    </div>
+    <div class="toggle" data-toggle="enabled"></div>
+  </div>
+  <div class="field-row">
+    <div class="field"><div class="field-label">Members Playing</div><input type="number" data-field="members" min="0"></div>
+    <div class="field"><div class="field-label">Tables Total</div><input type="number" data-field="tablesTotal" min="1" max="20"></div>
+  </div>
+  <div class="field-row">
+    <div class="field"><div class="field-label">Tables Occupied</div><input type="number" data-field="tablesOccupied" min="0"></div>
+    <div class="field"><div class="field-label">Status Label</div><input type="text" data-field="openText" placeholder="OPEN NOW"></div>
+  </div>
+  <button class="save-btn">Save</button>
+</div>
+
+<!-- EVENT -->
+<div class="card" data-key="event">
+  <div class="card-head">
+    <div>
+      <div class="card-title">Tonight's Event</div>
+      <div class="card-meta">Headline · Time · CTA</div>
+    </div>
+    <div class="toggle" data-toggle="enabled"></div>
+  </div>
+  <div class="field"><div class="field-label">Kicker</div><input type="text" data-field="kicker" placeholder="TONIGHT"></div>
+  <div class="field"><div class="field-label">Headline</div><input type="text" data-field="headline" placeholder="Members Only Saturday"></div>
+  <div class="field"><div class="field-label">Time</div><input type="text" data-field="time" placeholder="9 PM"></div>
+  <div class="field"><div class="field-label">Bottom Tag (optional)</div><input type="text" data-field="cta" placeholder="Application closes Fri 6 PM"></div>
+  <button class="save-btn">Save</button>
+</div>
+
+<!-- ROAST -->
+<div class="card" data-key="roast">
+  <div class="card-head">
+    <div>
+      <div class="card-title">Eligibility Terminal</div>
+      <div class="card-meta">Roast hook → kiosk CTA</div>
+    </div>
+    <div class="toggle" data-toggle="enabled"></div>
+  </div>
+  <div class="field"><div class="field-label">Eyebrow</div><input type="text" data-field="eyebrow"></div>
+  <div class="field"><div class="field-label">Headline</div><input type="text" data-field="headline"></div>
+  <div class="field"><div class="field-label">CTA</div><input type="text" data-field="cta"></div>
+  <button class="save-btn">Save</button>
+</div>
+
+<!-- HOURS / PRICING -->
+<div class="card" data-key="hours">
+  <div class="card-head">
+    <div>
+      <div class="card-title">Hours & Pricing</div>
+      <div class="card-meta">For walk-ups · 3 pricing lines</div>
+    </div>
+    <div class="toggle" data-toggle="enabled"></div>
+  </div>
+  <div class="field"><div class="field-label">Eyebrow</div><input type="text" data-field="eyebrow" placeholder="Walk In Welcome"></div>
+  <div class="field"><div class="field-label">Headline</div><input type="text" data-field="headline" placeholder="Open Daily"></div>
+  <div class="field"><div class="field-label">Time</div><input type="text" data-field="time" placeholder="12 PM – 12 AM"></div>
+  <div class="field"><div class="field-label">Price Line 1</div><input type="text" data-field="priceLine1" placeholder="₹100 / hour"></div>
+  <div class="field"><div class="field-label">Price Line 2</div><input type="text" data-field="priceLine2" placeholder="₹85 / hour · groups of 5+"></div>
+  <div class="field"><div class="field-label">Price Line 3</div><input type="text" data-field="priceLine3" placeholder="6 stamps = 1 free hour"></div>
+  <button class="save-btn">Save</button>
+</div>
+
+<!-- SPOTLIGHT -->
+<div class="card" data-key="spotlight">
+  <div class="card-head">
+    <div>
+      <div class="card-title">Member Spotlight</div>
+      <div class="card-meta">Photo · Name · Quote</div>
+    </div>
+    <div class="toggle" data-toggle="enabled"></div>
+  </div>
+  <div class="field"><div class="field-label">Photo URL (optional)</div><input type="text" data-field="photoUrl" placeholder="https://..."></div>
+  <div class="field-row">
+    <div class="field"><div class="field-label">Name</div><input type="text" data-field="name"></div>
+    <div class="field"><div class="field-label">Initial (fallback)</div><input type="text" data-field="initial" maxlength="2"></div>
+  </div>
+  <div class="field"><div class="field-label">Quote / Bio</div><textarea data-field="quote"></textarea></div>
+  <button class="save-btn">Save</button>
+</div>
+
+<!-- QR -->
+<div class="card" data-key="qr">
+  <div class="card-head">
+    <div>
+      <div class="card-title">QR / Application</div>
+      <div class="card-meta">Scan-to-join screen</div>
+    </div>
+    <div class="toggle" data-toggle="enabled"></div>
+  </div>
+  <div class="field"><div class="field-label">URL the QR opens</div><input type="text" data-field="url"></div>
+  <div class="field"><div class="field-label">Eyebrow</div><input type="text" data-field="eyebrow"></div>
+  <div class="field"><div class="field-label">Headline</div><input type="text" data-field="headline"></div>
+  <div class="field"><div class="field-label">Subline</div><input type="text" data-field="subline"></div>
+  <button class="save-btn">Save</button>
+</div>
+
+<!-- REEL -->
+<div class="card" data-key="reel">
+  <div class="card-head">
+    <div>
+      <div class="card-title">Reel / Video</div>
+      <div class="card-meta">9:16 MP4 URL · auto-plays muted</div>
+    </div>
+    <div class="toggle" data-toggle="enabled"></div>
+  </div>
+  <div class="field"><div class="field-label">Video URL (.mp4)</div><input type="text" data-field="videoUrl" placeholder="https://...mp4"></div>
+  <div class="field"><div class="field-label">Eyebrow</div><input type="text" data-field="eyebrow"></div>
+  <div class="field"><div class="field-label">Headline Overlay</div><input type="text" data-field="headline"></div>
+  <button class="save-btn">Save</button>
+</div>
+
+<!-- CONFIG -->
+<div class="card" data-key="config">
+  <div class="card-head">
+    <div>
+      <div class="card-title">Rotation Speed</div>
+      <div class="card-meta">Seconds per screen</div>
+    </div>
+  </div>
+  <div class="field"><div class="field-label">Seconds per scene</div><input type="number" data-field="rotationSeconds" min="3" max="60"></div>
+  <button class="save-btn">Save</button>
+</div>
+
+</div>
+
+<script>
+const FIREBASE_BASE = 'https://pakida-f94f3-default-rtdb.asia-southeast1.firebasedatabase.app';
+const DISPLAY_PATH = '/display';
+const PIN = '7364';
+
+let state = {};
+
+const pinInput = document.getElementById('pinInput');
+const pinError = document.getElementById('pinError');
+pinInput.focus();
+pinInput.addEventListener('input', () => {
+  if (pinInput.value.length === 4) {
+    if (pinInput.value === PIN) {
+      sessionStorage.setItem('pakidaAdmin', '1');
+      unlock();
+    } else {
+      pinError.textContent = 'Wrong PIN';
+      pinInput.value = '';
+      setTimeout(() => pinError.textContent = '', 1500);
+    }
+  }
+});
+
+if (sessionStorage.getItem('pakidaAdmin') === '1') unlock();
+
+function unlock() {
+  document.getElementById('pinScreen').classList.add('hidden');
+  document.getElementById('app').style.display = 'block';
+  loadState();
+}
+
+async function loadState() {
+  try {
+    const res = await fetch(FIREBASE_BASE + DISPLAY_PATH + '.json', { cache: 'no-store' });
+    state = (await res.json()) || {};
+    populateForms();
+    setSync('ok');
+  } catch (e) {
+    setSync('off');
+  }
+}
+
+function populateForms() {
+  document.querySelectorAll('.card[data-key]').forEach(card => {
+    const key = card.dataset.key;
+    const data = state[key] || {};
+    const toggle = card.querySelector('[data-toggle]');
+    if (toggle) toggle.classList.toggle('on', data.enabled !== false);
+    card.querySelectorAll('[data-field]').forEach(input => {
+      const f = input.dataset.field;
+      if (data[f] !== undefined && data[f] !== null) input.value = data[f];
+    });
+  });
+}
+
+document.querySelectorAll('.toggle').forEach(t => {
+  t.addEventListener('click', () => {
+    t.classList.toggle('on');
+    const card = t.closest('.card');
+    const key = card.dataset.key;
+    const enabled = t.classList.contains('on');
+    saveSection(card, key, { enabled });
+  });
+});
+
+document.querySelectorAll('.save-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const card = btn.closest('.card');
+    const key = card.dataset.key;
+    const payload = {};
+    const toggle = card.querySelector('[data-toggle]');
+    if (toggle) payload.enabled = toggle.classList.contains('on');
+    card.querySelectorAll('[data-field]').forEach(input => {
+      const f = input.dataset.field;
+      let v = input.value;
+      if (input.type === 'number') v = v === '' ? 0 : Number(v);
+      payload[f] = v;
+    });
+    saveSection(card, key, payload);
+  });
+});
+
+async function saveSection(card, key, payload) {
+  setSync('saving');
+  const btn = card.querySelector('.save-btn');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await fetch(`${FIREBASE_BASE}${DISPLAY_PATH}/${key}.json`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('http ' + res.status);
+    state[key] = { ...(state[key] || {}), ...payload };
+    setSync('ok');
+    if (btn) {
+      btn.classList.add('saved');
+      btn.textContent = '✓ Saved · Live';
+      setTimeout(() => {
+        btn.classList.remove('saved');
+        btn.textContent = 'Save';
+        btn.disabled = false;
+      }, 1500);
+    }
+  } catch (e) {
+    setSync('off');
+    if (btn) {
+      btn.textContent = 'Failed · Retry';
+      btn.disabled = false;
+      setTimeout(() => btn.textContent = 'Save', 2000);
+    }
+  }
+}
+
+function setSync(s) {
+  const dot = document.getElementById('syncDot');
+  const text = document.getElementById('syncText');
+  dot.className = 'sync-dot';
+  if (s === 'off') {
+    dot.classList.add('off');
+    text.textContent = 'Offline · check connection';
+  } else if (s === 'saving') {
+    dot.classList.add('saving');
+    text.textContent = 'Saving...';
+  } else {
+    text.textContent = 'Connected · changes go live in ~3 seconds';
+  }
+}
+</script>
+</body>
+</html>

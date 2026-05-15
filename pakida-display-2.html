@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pakida · display</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --charcoal: #141814;
+  --charcoal-2: #1b1f17;
+  --sage: #7a9e7e;
+  --sage-dim: #4a6a4e;
+  --gold: #d4a853;
+  --gold-bright: #e8c478;
+  --cream: #f0e8d4;
+  --display: 'Playfair Display', serif;
+  --body: 'DM Sans', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--charcoal);
+  color: var(--cream);
+  font-family: var(--body);
+  cursor: none;
+}
+
+/* CSS rotation fallback — add ?rotate=90 to URL if TV can't rotate natively */
+body.rotated {
+  position: absolute;
+  top: 0; left: 100vw;
+  width: 100vh;
+  height: 100vw;
+  transform: rotate(90deg);
+  transform-origin: top left;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 30% 20%, rgba(122, 158, 126, 0.06) 0%, transparent 55%),
+    radial-gradient(circle at 70% 80%, rgba(212, 168, 83, 0.05) 0%, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: 110px 1fr 90px;
+}
+
+/* TOP BAR */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  border-bottom: 1px solid rgba(122, 158, 126, 0.18);
+}
+
+.brand { display: flex; align-items: center; gap: 16px; }
+
+.brand-mark {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--sage);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--charcoal);
+  font-family: var(--display);
+  font-size: 30px;
+  font-weight: 700;
+  box-shadow: 0 0 30px rgba(122, 158, 126, 0.3);
+}
+
+.brand-name {
+  font-family: var(--display);
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.brand-sub {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--sage);
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.clock-block { text-align: right; }
+
+.clock {
+  font-family: var(--display);
+  font-size: 32px;
+  color: var(--cream);
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.date {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--sage);
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+/* SCENES */
+.scene-stage { position: relative; overflow: hidden; }
+
+.scene {
+  position: absolute;
+  inset: 0;
+  padding: 60px 50px;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.scene.active { opacity: 1; pointer-events: auto; }
+
+/* TICKER — marquee scroll */
+.ticker {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid rgba(122, 158, 126, 0.18);
+  overflow: hidden;
+  position: relative;
+}
+
+.ticker-track {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  animation: scroll 28s linear infinite;
+  padding-left: 36px;
+  white-space: nowrap;
+  font-size: 14px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--sage);
+}
+
+@keyframes scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.ticker-item { display: flex; align-items: center; gap: 12px; }
+
+.ticker-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--sage);
+  animation: pulse 2s ease infinite;
+}
+
+.ticker-dot.live { background: #ff5a5a; box-shadow: 0 0 12px rgba(255, 90, 90, 0.6); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.ticker-divider { width: 1px; height: 20px; background: rgba(122, 158, 126, 0.3); flex-shrink: 0; }
+
+/* SCENE: STATUS */
+.scene-status .big-number {
+  font-family: var(--display);
+  font-size: clamp(280px, 42vmin, 480px);
+  line-height: 0.85;
+  color: var(--gold);
+  font-weight: 600;
+  text-shadow: 0 0 60px rgba(212, 168, 83, 0.2);
+}
+
+.scene-status .big-label {
+  font-size: clamp(20px, 3vmin, 32px);
+  letter-spacing: 12px;
+  text-transform: uppercase;
+  color: var(--cream);
+  margin-top: 28px;
+}
+
+.scene-status .tables {
+  display: flex;
+  gap: 14px;
+  margin-top: 80px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 600px;
+}
+
+.table-dot {
+  width: 60px; height: 60px;
+  border-radius: 10px;
+  border: 2px solid var(--sage);
+}
+
+.table-dot.occupied {
+  background: var(--sage);
+  box-shadow: 0 0 30px rgba(122, 158, 126, 0.5);
+}
+
+.scene-status .tables-label {
+  font-size: 16px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-top: 30px;
+}
+
+/* SCENE: EVENT */
+.scene-event .event-kicker {
+  font-size: clamp(16px, 2.2vmin, 22px);
+  letter-spacing: 10px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 50px;
+}
+
+.scene-event .event-headline {
+  font-family: var(--display);
+  font-size: clamp(100px, 13vmin, 180px);
+  line-height: 1;
+  color: var(--cream);
+  font-weight: 700;
+}
+
+.scene-event .event-time {
+  font-family: var(--display);
+  font-size: clamp(70px, 9vmin, 120px);
+  color: var(--sage);
+  margin-top: 40px;
+  font-style: italic;
+}
+
+.scene-event .event-cta {
+  font-size: clamp(16px, 2vmin, 22px);
+  letter-spacing: 4px;
+  color: var(--gold);
+  margin-top: 70px;
+  text-transform: uppercase;
+  border: 1px solid var(--gold);
+  padding: 18px 40px;
+}
+
+/* SCENE: ROAST */
+.scene-roast .roast-eyebrow {
+  font-size: clamp(14px, 2vmin, 20px);
+  letter-spacing: 8px;
+  color: var(--sage);
+  text-transform: uppercase;
+  margin-bottom: 50px;
+}
+
+.scene-roast .roast-headline {
+  font-family: var(--display);
+  font-size: clamp(90px, 11vmin, 150px);
+  line-height: 1;
+  color: var(--gold);
+  font-style: italic;
+  font-weight: 700;
+}
+
+.scene-roast .roast-arrow {
+  font-size: clamp(80px, 10vmin, 120px);
+  color: var(--cream);
+  margin: 50px 0 30px;
+  animation: nudgeDown 1.6s ease infinite;
+  line-height: 1;
+}
+
+@keyframes nudgeDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(14px); }
+}
+
+.scene-roast .roast-cta {
+  font-size: clamp(22px, 3vmin, 32px);
+  letter-spacing: 6px;
+  color: var(--cream);
+  text-transform: uppercase;
+}
+
+/* SCENE: HOURS */
+.scene-hours .hours-eyebrow {
+  font-size: clamp(14px, 2vmin, 20px);
+  letter-spacing: 10px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 40px;
+}
+
+.scene-hours .hours-headline {
+  font-family: var(--display);
+  font-size: clamp(70px, 10vmin, 130px);
+  color: var(--cream);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.scene-hours .hours-time {
+  font-family: var(--display);
+  font-size: clamp(60px, 8vmin, 110px);
+  color: var(--sage);
+  margin-top: 20px;
+  font-style: italic;
+  line-height: 1;
+}
+
+.scene-hours .hours-divider {
+  width: 80px; height: 1px;
+  background: var(--sage-dim);
+  margin: 60px 0;
+}
+
+.scene-hours .hours-pricing {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: clamp(22px, 2.8vmin, 32px);
+  color: var(--cream);
+  letter-spacing: 2px;
+}
+
+/* SCENE: SPOTLIGHT */
+.scene-spotlight .spotlight-eyebrow {
+  font-size: clamp(14px, 1.8vmin, 18px);
+  letter-spacing: 8px;
+  color: var(--sage);
+  text-transform: uppercase;
+  margin-bottom: 50px;
+}
+
+.scene-spotlight .spotlight-avatar {
+  width: clamp(240px, 32vmin, 360px);
+  height: clamp(240px, 32vmin, 360px);
+  border-radius: 50%;
+  background: var(--sage-dim);
+  border: 5px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-size: clamp(120px, 16vmin, 180px);
+  color: var(--cream);
+  margin-bottom: 50px;
+  overflow: hidden;
+  box-shadow: 0 0 80px rgba(212, 168, 83, 0.2);
+  line-height: 1;
+}
+
+.spotlight-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.scene-spotlight .spotlight-name {
+  font-family: var(--display);
+  font-size: clamp(80px, 10vmin, 130px);
+  color: var(--cream);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.scene-spotlight .spotlight-quote {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: clamp(28px, 3.5vmin, 44px);
+  color: var(--sage);
+  margin-top: 40px;
+  max-width: 90%;
+  line-height: 1.3;
+}
+
+/* SCENE: QR */
+.scene-qr .qr-eyebrow {
+  font-size: clamp(16px, 2.2vmin, 22px);
+  letter-spacing: 10px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 30px;
+}
+
+.scene-qr .qr-headline {
+  font-family: var(--display);
+  font-size: clamp(70px, 9vmin, 120px);
+  line-height: 1.05;
+  color: var(--cream);
+  font-weight: 700;
+  margin-bottom: 50px;
+}
+
+.scene-qr .qr-block {
+  background: var(--cream);
+  padding: 32px;
+  border-radius: 14px;
+  box-shadow: 0 0 80px rgba(240, 232, 212, 0.2);
+}
+
+.scene-qr .qr-block img {
+  display: block;
+  width: clamp(380px, 45vmin, 520px);
+  height: clamp(380px, 45vmin, 520px);
+}
+
+.scene-qr .qr-subline {
+  font-size: clamp(20px, 2.5vmin, 28px);
+  color: var(--sage);
+  margin-top: 40px;
+  letter-spacing: 2px;
+}
+
+/* SCENE: REEL */
+.scene-reel { padding: 0; }
+
+.scene-reel video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+.scene-reel .reel-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 60px 50px 80px;
+  background: linear-gradient(to top, rgba(20,24,20,0.95) 0%, rgba(20,24,20,0.4) 35%, transparent 55%);
+  text-align: left;
+  align-items: flex-start;
+}
+
+.scene-reel .reel-eyebrow {
+  font-size: clamp(13px, 1.8vmin, 18px);
+  letter-spacing: 8px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.scene-reel .reel-headline {
+  font-family: var(--display);
+  font-size: clamp(60px, 7.5vmin, 100px);
+  color: var(--cream);
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.connection-indicator {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--sage);
+  z-index: 50;
+  opacity: 0.5;
+}
+
+.connection-indicator.offline {
+  background: #ff5a5a;
+  animation: pulse 1.2s ease infinite;
+}
+
+.scene.active > * {
+  animation: rise 1s ease both;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.scene.active > *:nth-child(2) { animation-delay: 0.15s; }
+.scene.active > *:nth-child(3) { animation-delay: 0.3s; }
+.scene.active > *:nth-child(4) { animation-delay: 0.45s; }
+.scene.active > *:nth-child(5) { animation-delay: 0.6s; }
+
+</style>
+</head>
+<body>
+
+<div class="connection-indicator" id="conn"></div>
+
+<div class="stage">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">P</div>
+      <div>
+        <div class="brand-name">pakida</div>
+        <div class="brand-sub">Board Game Café · 4th Floor</div>
+      </div>
+    </div>
+    <div class="clock-block">
+      <div class="clock" id="clock">--:--</div>
+      <div class="date" id="date">SATURDAY</div>
+    </div>
+  </div>
+
+  <div class="scene-stage" id="scenes"></div>
+
+  <div class="ticker">
+    <div class="ticker-track" id="tickerTrack"></div>
+  </div>
+</div>
+
+<script>
+const FIREBASE_BASE = 'https://pakida-f94f3-default-rtdb.asia-southeast1.firebasedatabase.app';
+const DISPLAY_PATH = '/display.json';
+const POLL_INTERVAL = 2500;
+
+if (new URLSearchParams(location.search).get('rotate') === '90') {
+  document.body.classList.add('rotated');
+}
+
+let state = {
+  config: { rotationSeconds: 8 },
+  status: { enabled: true, members: 0, tablesOccupied: 0, tablesTotal: 6, openText: 'OPEN NOW' },
+  event: { enabled: true, kicker: 'TONIGHT', headline: 'Members Only Saturday', time: '9 PM', cta: 'Application closes Fri 6 PM' },
+  roast: { enabled: true, eyebrow: 'Eligibility Terminal', headline: 'Are you Pakida material?', cta: 'Kiosk by the chai shop' },
+  hours: { enabled: true, eyebrow: 'Walk In Welcome', headline: 'Open Daily', time: '12 PM – 12 AM', priceLine1: '₹100 / hour', priceLine2: '₹85 / hour · groups of 5+', priceLine3: '6 stamps = 1 free hour' },
+  spotlight: { enabled: true, name: 'Arjun', initial: 'A', photoUrl: '', quote: '47 hours in. The Catan king of Phase 1.' },
+  qr: { enabled: true, url: 'https://chat.whatsapp.com/LyA5iawErK3KYPs2SC4DZk', eyebrow: 'Join the Circle', headline: 'Apply.', subline: '30 founding spots · Scan to apply' },
+  reel: { enabled: false, videoUrl: '', eyebrow: 'Tonight at Pakida', headline: 'The betrayal you have to feel.' }
+};
+
+function buildScenes() {
+  const container = document.getElementById('scenes');
+  container.innerHTML = '';
+  const order = ['status', 'event', 'roast', 'hours', 'spotlight', 'qr', 'reel'];
+  order.forEach((key) => {
+    const data = state[key];
+    if (!data || !data.enabled) return;
+    if (key === 'reel' && !data.videoUrl) return;
+    const el = document.createElement('div');
+    el.className = `scene scene-${key}`;
+    el.innerHTML = renderScene(key, data);
+    container.appendChild(el);
+  });
+  return container.querySelectorAll('.scene');
+}
+
+function renderScene(key, d) {
+  switch(key) {
+    case 'status': {
+      const total = d.tablesTotal || 6;
+      const occ = Math.min(d.tablesOccupied || 0, total);
+      const tablesHtml = Array.from({ length: total }, (_, i) =>
+        `<div class="table-dot ${i < occ ? 'occupied' : ''}"></div>`
+      ).join('');
+      return `
+        <div class="big-number">${d.members ?? 0}</div>
+        <div class="big-label">Members Playing Now</div>
+        <div class="tables">${tablesHtml}</div>
+        <div class="tables-label">${occ} of ${total} Tables in Session</div>
+      `;
+    }
+    case 'event':
+      return `
+        <div class="event-kicker">${esc(d.kicker || 'Tonight')}</div>
+        <div class="event-headline">${esc(d.headline)}</div>
+        <div class="event-time">${esc(d.time || '')}</div>
+        ${d.cta ? `<div class="event-cta">${esc(d.cta)}</div>` : ''}
+      `;
+    case 'roast':
+      return `
+        <div class="roast-eyebrow">${esc(d.eyebrow || 'Eligibility Terminal')}</div>
+        <div class="roast-headline">${esc(d.headline)}</div>
+        <div class="roast-arrow">↓</div>
+        <div class="roast-cta">${esc(d.cta || '')}</div>
+      `;
+    case 'hours':
+      return `
+        <div class="hours-eyebrow">${esc(d.eyebrow || 'Walk In Welcome')}</div>
+        <div class="hours-headline">${esc(d.headline || 'Open Daily')}</div>
+        <div class="hours-time">${esc(d.time || '')}</div>
+        <div class="hours-divider"></div>
+        <div class="hours-pricing">
+          ${d.priceLine1 ? `<div>${esc(d.priceLine1)}</div>` : ''}
+          ${d.priceLine2 ? `<div>${esc(d.priceLine2)}</div>` : ''}
+          ${d.priceLine3 ? `<div>${esc(d.priceLine3)}</div>` : ''}
+        </div>
+      `;
+    case 'spotlight': {
+      const avatar = d.photoUrl
+        ? `<img src="${esc(d.photoUrl)}" alt="">`
+        : esc(d.initial || (d.name || '?')[0]);
+      return `
+        <div class="spotlight-eyebrow">Member Spotlight</div>
+        <div class="spotlight-avatar">${avatar}</div>
+        <div class="spotlight-name">${esc(d.name)}</div>
+        <div class="spotlight-quote">"${esc(d.quote)}"</div>
+      `;
+    }
+    case 'qr': {
+      const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&margin=0&data=${encodeURIComponent(d.url || '')}`;
+      return `
+        <div class="qr-eyebrow">${esc(d.eyebrow || 'Join the Circle')}</div>
+        <div class="qr-headline">${esc(d.headline)}</div>
+        <div class="qr-block"><img src="${qrSrc}" alt="QR"></div>
+        <div class="qr-subline">${esc(d.subline || '')}</div>
+      `;
+    }
+    case 'reel':
+      return `
+        <video autoplay muted loop playsinline>
+          <source src="${esc(d.videoUrl)}" type="video/mp4">
+        </video>
+        <div class="reel-overlay">
+          <div class="reel-eyebrow">${esc(d.eyebrow || '')}</div>
+          <div class="reel-headline">${esc(d.headline || '')}</div>
+        </div>
+      `;
+  }
+  return '';
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+let scenes = [];
+let currentIdx = 0;
+let rotationTimer = null;
+
+function showScene(i) {
+  scenes.forEach(s => s.classList.remove('active'));
+  if (scenes[i]) {
+    scenes[i].classList.add('active');
+    const items = scenes[i].children;
+    Array.from(items).forEach(el => {
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = '';
+    });
+  }
+}
+
+function startRotation() {
+  scenes = document.querySelectorAll('.scene');
+  if (scenes.length === 0) return;
+  if (currentIdx >= scenes.length) currentIdx = 0;
+  showScene(currentIdx);
+  if (rotationTimer) clearTimeout(rotationTimer);
+  const tick = () => {
+    currentIdx = (currentIdx + 1) % scenes.length;
+    showScene(currentIdx);
+    rotationTimer = setTimeout(tick, (state.config.rotationSeconds || 8) * 1000);
+  };
+  rotationTimer = setTimeout(tick, (state.config.rotationSeconds || 8) * 1000);
+}
+
+function updateTicker() {
+  const s = state.status || {};
+  const items = [
+    { live: true, text: s.openText || 'OPEN NOW' },
+    { text: `${s.members ?? 0} members playing` },
+    { text: `${s.tablesOccupied ?? 0} of ${s.tablesTotal ?? 6} tables full` },
+    { text: 'Opposite Technopark Phase 1' },
+    { text: '@pakida' },
+    { text: '4th Floor · Look Up' }
+  ];
+  const renderItem = (it) => `
+    ${it.live ? '<div class="ticker-dot live"></div>' : ''}
+    <div class="ticker-item"><span>${esc(it.text)}</span></div>
+    <div class="ticker-divider"></div>
+  `;
+  const html = items.map(renderItem).join('') + items.map(renderItem).join('');
+  document.getElementById('tickerTrack').innerHTML = html;
+}
+
+function tickClock() {
+  const now = new Date();
+  let h = now.getHours(); const m = now.getMinutes();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12; if (h === 0) h = 12;
+  document.getElementById('clock').textContent = `${h}:${m.toString().padStart(2,'0')} ${ampm}`;
+  const days = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+  document.getElementById('date').textContent = days[now.getDay()];
+}
+setInterval(tickClock, 1000); tickClock();
+
+let lastDataHash = '';
+async function fetchState() {
+  try {
+    const res = await fetch(FIREBASE_BASE + DISPLAY_PATH, { cache: 'no-store' });
+    if (!res.ok) throw new Error('http ' + res.status);
+    const data = await res.json();
+    if (data && typeof data === 'object') {
+      const hash = JSON.stringify(data);
+      if (hash !== lastDataHash) {
+        lastDataHash = hash;
+        for (const k of Object.keys(state)) {
+          if (data[k]) state[k] = { ...state[k], ...data[k] };
+        }
+        const oldIdx = currentIdx;
+        scenes = buildScenes();
+        currentIdx = Math.min(oldIdx, Math.max(0, scenes.length - 1));
+        if (rotationTimer) clearTimeout(rotationTimer);
+        startRotation();
+        updateTicker();
+      }
+    }
+    setConnection(true);
+  } catch (e) {
+    setConnection(false);
+  }
+}
+
+function setConnection(ok) {
+  document.getElementById('conn').classList.toggle('offline', !ok);
+}
+
+function init() {
+  buildScenes();
+  updateTicker();
+  startRotation();
+  fetchState();
+  setInterval(fetchState, POLL_INTERVAL);
+
+  document.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen?.().catch(() => {});
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') {
+      currentIdx = (currentIdx + 1) % scenes.length;
+      showScene(currentIdx);
+    } else if (e.key === 'ArrowLeft') {
+      currentIdx = (currentIdx - 1 + scenes.length) % scenes.length;
+      showScene(currentIdx);
+    }
+  });
+}
+
+init();
+</script>
+</body>
+</html>
